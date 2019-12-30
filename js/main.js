@@ -54,7 +54,7 @@ Scripts.exportar(
 function gerarNome(){
     var titulo = "[APLIC 2020] " + $("#formNomeArquivo").val()
 
-    navigator.clipboard.writeText(titulo).then(
+    navigator.clipboard.writeText(titulo).toUpperCase().then(
         function() {
           console.log("Async: Copiado com sucesso para o Clipboard!");
         },
