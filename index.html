@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Gerador de Templates</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="shortcut icon" href="https://i.ibb.co/2KddCq7/23113851-300x300.png" type="image/x-icon">
+    <script src="https://cdn.betha.cloud/base/g4/front-end/2.13/js/base.js"></script>
+    <script src="https://cdn.betha.cloud/base/g4/front-end/2.13/js/jquery.min.js"></script>
+    <script src="https://cdn.betha.cloud/base/g4/front-end/2.13/js/globalize.js"></script>
+    <script src="https://cdn.betha.cloud/base/g4/front-end/2.13/js/jquery-ui.min.js"></script>
+    <script src="https://cdn.betha.cloud/base/g4/front-end/2.13/js/select2.js"></script>
+    <script src="https://cdn.betha.cloud/base/g4/front-end/2.13/js/lodash.js"></script>
+    <script src="https://cdn.betha.cloud/base/g4/front-end/2.13/js/accounting.js"></script>
+    <script src="https://cdn.betha.cloud/base/g4/front-end/2.13/js/jquery-mask-plugin.js"></script>
+    <script src="https://cdn.betha.cloud/base/g4/front-end/2.13/js/module.js"></script>
+    <script src="https://cdn.betha.cloud/base/g4/front-end/2.13/js/browser.js"></script>
+    <script src="https://cdn.betha.cloud/base/g4/front-end/2.13/js/utils.js"></script>
+    <script src="https://cdn.betha.cloud/base/g4/front-end/2.13/js/messages.js"></script>
+    <script src="https://cdn.betha.cloud/base/g4/front-end/2.13/js/tabs.js"></script>
+    <script src="https://cdn.betha.cloud/base/g4/front-end/2.13/js/timepicker.js"></script>
+    <script src="https://cdn.betha.cloud/base/g4/front-end/2.13/js/date.js"></script>
+    <script src="https://cdn.betha.cloud/base/g4/front-end/2.13/js/calendar.js"></script>
+    <script src="https://cdn.betha.cloud/base/g4/front-end/2.13/js/modal.js"></script>
+    <script src="https://cdn.betha.cloud/base/g4/front-end/2.13/js/popover.js"></script>
+    <script src="https://cdn.betha.cloud/base/g4/design/3.11.9/bth-design.js"></script>
+    <script type="text/javascript" src="js/main.js"></script>
+    <link rel="stylesheet" type="text/css" href="css/main.css">
+    <link rel="stylesheet" href="https://cdn.betha.cloud/base/g4/design/3.11.9/bth-design.css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css"
+        integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf" crossorigin="anonymous">
+</head>
+
+<body>
+    <div class="container-fluid">
+        <header>
+            <div class="megamenu-container">
+                <div class="container iv">
+                    <ul class="megamenu">
+                        <li class="menu-static"><a href="#" class="drop">
+                                <div class="bth-logo bth-logo--brand-custom">
+                                    <div class="bth-logo__image"></div>
+                                </div><span class="megamenu-title">Gerador de Templates</span>
+                            </a>
+                        </li>
+                        <li class="mm-delay">
+                            <a>Principal</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </header>
+        <content>
+            <div id="cronograma" class="container container-page">
+                <div class="page-header">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <h3 class="page-title">Gerar Template</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="section-content">
+                    <form>
+                        <div class="form-group">
+                            <label for="formNomeArquivo">Nome do Arquivo</label>
+                            <input type="nomeArquivo" class="form-control" id="formNomeArquivo"
+                                aria-describedby="emailHelp" placeholder="Digite o nome para o arquivo no template">
+                        </div>
+                        <a onclick="gerarNome()" type="submit" class="btn btn-primary ">GERAR NOME</a>
+
+                        <a onclick="gerarTemplate()" type="submit" class="btn btn-primary ">GERAR
+                            CÓDIGO</a>
+
+                        <a onclick="gerarIdentificador()" type="submit" class="btn btn-primary">GERAR
+                            IDENTIFICADOR</a>
+                    </form>
+                </div>
+            </div>
+        </content>
+        <div class="footer">
+            <div class="container container-footer">
+                <div id="armored_website" style="width: 115px; height: 32px;"><a id="sb-shield-2" target="_blank"
+                        title="Navegue tranquilamente! Este é um Site Blindado contra ataques! Clique e confira mais detalhes.">
+                        <img src="https://api.siteblindado.com/v1/seal/aw/compras.betha.cloud/seal.png"
+                            oncontextmenu="alert(&quot;Cópia&nbsp;Proibida&nbsp;por&nbsp;Lei&nbsp;-&nbsp;Site&nbsp;Blindado®&nbsp;é&nbsp;marca&nbsp;registrada&nbsp;de&nbsp;Site&nbsp;Blindado&nbsp;S.A.&quot;)&quot;"></a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+
+</html>
