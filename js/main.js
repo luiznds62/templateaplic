@@ -1,45 +1,18 @@
+function mostrarPrincipal() {
+  document.querySelector("#principal").style.display = "block";
+  document.querySelector("#configuracao").style.display = "none";
+}
+
+function mostrarConfiguracoes() {
+  document.querySelector("#principal").style.display = "none";
+  document.querySelector("#configuracao").style.display = "block";
+}
+
 function gerarTemplate() {
   let nomeArquivo = $("#formNomeArquivo").val();
-
+  let template = $("#formCodigo").val();
   
-var codigo = `final ARQUIVO = "${nomeArquivo}.xml"
-
-def lListaValidacoes = []
-
-def busca = { params ->
-    
-    def mDados = [:]
-    
-    def cLog = params.instanceManager.getInstance("aplic_pdc_log")
-    def cUrl = params.instanceManager.getInstance("aplic_utilitarios_url_cloud");
-    def cUtilitarios = params.instanceManager.getInstance("aplic_pdc_utilitarios_cloud");
-
-    return mDados  
-}
-
-def geraArquivo = { params -> 
-    
-    def cLog = params.instanceManager.getInstance("aplic_pdc_log")
-    def cAplicApi = params.instanceManager.getInstance("aplic_pdc_api")
-    
-    cLog.info("Iniciando geração do arquivo $ARQUIVO")
-    cLog.info("Buscando dados...")
-    
-    def mDados = busca(params)
-    
-    cLog.info("Quantidade de Registros encontrados: \${mDados.size()}", null, mDados.size())
-    cLog.aviso("Não foram encontrados dados para geração do arquivo.", null, !mDados.size())
-    
-    def aArquivo = cAplicApi.escreverArquivo(arquivo: ARQUIVO, 
-                                            dados: mDados,
-                                            validarArquivo: params.validarArquivo)
-
-    retornar(arquivo: aArquivo, contemDados: mDados.size() > 0, listalogs: lListaValidacoes.unique()) 
-}
-
-Scripts.exportar(
-    geraArquivo: geraArquivo
-)`;
+var codigo = template.replace('NOMEDOARQUIVOTEMPLATE',nomeArquivo)
 
   navigator.clipboard.writeText(codigo).then(
     function() {
@@ -52,7 +25,8 @@ Scripts.exportar(
 }
 
 function gerarNome(){
-    var titulo = "[APLIC 2020] " + $("#formNomeArquivo").val()
+    let nomeConfig = $("#formPrefixoNome").val();
+    var titulo = nomeConfig + $("#formNomeArquivo").val()
 
     navigator.clipboard.writeText(titulo).toUpperCase().then(
         function() {
@@ -66,11 +40,12 @@ function gerarNome(){
 
 
 function gerarIdentificador(){
+    let prefixoIdentificador = $("#formPrefixoIdentificador").val();
     var titulo = $("#formNomeArquivo").val()
     for(var i = 0; i < 15; i++){
         titulo = titulo.replace(" ","_")
     }
-    navigator.clipboard.writeText('aplic2020_' + titulo.toLowerCase()).then(
+    navigator.clipboard.writeText(prefixoIdentificador + titulo.toLowerCase()).then(
         function() {
           console.log("Async: Copiado com sucesso para o Clipboard!");
         },

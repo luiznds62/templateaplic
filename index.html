@@ -43,15 +43,18 @@
                                 </div><span class="megamenu-title">Gerador de Templates</span>
                             </a>
                         </li>
-                        <li class="mm-delay">
+                        <li onclick="mostrarPrincipal()" class="mm-delay">
                             <a>Principal</a>
+                        </li>
+                        <li onclick="mostrarConfiguracoes()" class="mm-delay">
+                            <a>Configurações</a>
                         </li>
                     </ul>
                 </div>
             </div>
         </header>
         <content>
-            <div id="cronograma" class="container container-page">
+            <div id="principal" class="container container-page">
                 <div class="page-header">
                     <div class="row">
                         <div class="col-md-12">
@@ -73,6 +76,33 @@
 
                         <a onclick="gerarIdentificador()" type="submit" class="btn btn-primary">GERAR
                             IDENTIFICADOR</a>
+                    </form>
+                </div>
+            </div>
+            <div id="configuracao" class="container container-page">
+                <div class="page-header">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <h3 class="page-title">Configurações</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="section-content">
+                    <form>
+                        <div class="form-group">
+                            <label for="formPrefixoNome">Prefixo Nome</label>
+                            <input type="prefixoArquivo" class="form-control" id="formPrefixoNome"
+                                aria-describedby="prefixo" placeholder="Informe o prefixo para o nome dos arquivos">
+                        </div>
+                        <div class="form-group">
+                            <label for="formPrefixoIdentificador">Prefixo Identificador</label>
+                            <input type="prefixoIdentificador" class="form-control" id="formPrefixoIdentificador"
+                                aria-describedby="prefixoIdentificador" placeholder="Informe o prefixo para o identificador">
+                        </div>
+                        <div class="form-group">
+                            <label for="formCodigo">Código de Template</label>
+                            <textarea class="form-control" id="formCodigo" placeholder="Informe com o texto 'NOMEDOARQUIVOTEMPLATE' o local onde deverá ser substituído o nome" rows="30"></textarea>
+                        </div>
                     </form>
                 </div>
             </div>
