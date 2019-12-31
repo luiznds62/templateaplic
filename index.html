@@ -29,6 +29,9 @@
     <link rel="stylesheet" href="https://cdn.betha.cloud/base/g4/design/3.11.9/bth-design.css">
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css"
         integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="css/toastr.css">
+    <script type="text/javascript" src="js/toastr.js"></script>
+
 </head>
 
 <body>
@@ -64,18 +67,16 @@
                 </div>
                 <div class="section-content">
                     <form>
-                        <div class="form-group">
-                            <label for="formNomeArquivo">Nome do Arquivo</label>
-                            <input type="nomeArquivo" class="form-control" id="formNomeArquivo"
-                                aria-describedby="emailHelp" placeholder="Digite o nome para o arquivo no template">
+                        <div class="row">
+                            <div class="form-group">
+                                <label for="formNomeArquivo">Nome do Arquivo</label>
+                                <input type="nomeArquivo" class="form-control" id="formNomeArquivo"
+                                    aria-describedby="emailHelp" placeholder="Digite o nome para o arquivo no template">
+                            </div>
                         </div>
-                        <a onclick="gerarNome()" type="submit" class="btn btn-primary ">GERAR NOME</a>
-
-                        <a onclick="gerarTemplate()" type="submit" class="btn btn-primary ">GERAR
-                            CÓDIGO</a>
-
-                        <a onclick="gerarIdentificador()" type="submit" class="btn btn-primary">GERAR
-                            IDENTIFICADOR</a>
+                        <div class="row">
+                            <a onclick="salvar()" type="submit" class="btn btn-primary">SALVAR</a>
+                        </div>
                     </form>
                 </div>
             </div>
@@ -89,6 +90,16 @@
                 </div>
                 <div class="section-content">
                     <form>
+                        <div class="form-group">
+                            <label for="formBearer">Bearer Token</label>
+                            <input type="bearer" class="form-control" id="formBearer" aria-describedby="bearer"
+                                placeholder="Informe o token de acesso">
+                        </div>
+                        <div class="form-group">
+                            <label for="formUserAcess">User Acess</label>
+                            <input type="userAcess" class="form-control" id="formUserAcess" aria-describedby="userAcess"
+                                placeholder="Informe o UserAcess">
+                        </div>
                         <div class="form-group">
                             <label for="formPrefixoNome">Prefixo Nome</label>
                             <input type="prefixoArquivo" class="form-control" id="formPrefixoNome"
