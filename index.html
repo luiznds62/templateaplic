@@ -45,7 +45,7 @@
                     <div class="row text-center">
                         <form>
                             <div id="listaLogs" class="form-group">
-                                <textarea class="form-control" id="formListaLogs" rows="25"></textarea>
+                                <textarea disabled='true' class="form-control" id="formListaLogs" rows="25"></textarea>
                             </div>
                         </form>
                     </div>
@@ -94,6 +94,10 @@
                                 <select class="form-control" id="formTipoDeGeracao" onchange="alterarTipoGeracao(this)">
                                     <option>Individual</option>
                                     <option>Lista</option>
+                                    <option>Gerenciador de Componentes</option>
+                                    <option>Centralizador de Utilitários</option>
+                                    <option>Componente de Logs</option>
+                                    <option>Tipos,Mapas e Textos</option>
                                 </select>
                             </div>
                             <div id="individual" class="form-group">
