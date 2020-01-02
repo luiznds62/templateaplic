@@ -1,15 +1,21 @@
 let contentType = "application/json";
-var bearerToken = undefined;
-var userAcess = undefined;
-var idRascunho = undefined;
-var tituloRascunho = undefined;
-var idEntidade = undefined;
-var idPublicacao = undefined;
+let bearerToken = undefined;
+let userAcess = undefined;
+let idRascunho = undefined;
+let tituloRascunho = undefined;
+let idEntidade = undefined;
+let idPublicacao = undefined;
+let tipoGeracao = "individual";
 
 async function salvar() {
   try {
-    if ($("#formNomeArquivo").val() === "") {
+    if ($("#formNomeArquivo").val() === "" && tipoGeracao === "individual") {
       toastr.error("Nome do arquivo não informado");
+      return;
+    }
+
+    if ($("#formListaArquivos").val() === "" && tipoGeracao === "lista") {
+      toastr.error("Nenhum arquivo informado");
       return;
     }
 
@@ -38,17 +44,66 @@ async function salvar() {
       return;
     }
 
-    var rasc = await gerarRascunho();
-    idRascunho = rasc.id;
-    tituloRascunho = rasc.titulo;
-    idEntidade = rasc.entidadeId;
+    if (tipoGeracao === "individual") {
+      let nomeConfig = $("#formPrefixoNome").val();
+      var titulo = nomeConfig + $("#formNomeArquivo").val();
 
-    var ger = await gerarCodigo();
+      var rasc = await gerarRascunho(titulo);
+      idRascunho = rasc.id;
+      tituloRascunho = rasc.titulo;
+      idEntidade = rasc.entidadeId;
 
-    var pub = await publicarCodigo();
-    idPublicacao = pub.id;
+      let nomeArquivo = $("#formNomeArquivo").val();
+      let template = $("#formCodigo").val();
 
-    var save = await salvarIdentificador();
+      let codigo = template.replace("NOMEDOARQUIVOTEMPLATE", nomeArquivo);
+
+      var ger = await gerarCodigo(codigo);
+
+      var pub = await publicarCodigo();
+      idPublicacao = pub.id;
+
+      let prefixoIdentificador = $("#formPrefixoIdentificador").val();
+      let titulo = $("#formNomeArquivo").val();
+      for (let i = 0; i < 15; i++) {
+        titulo = titulo.replace(" ", "_");
+      }
+
+      let identificador = prefixoIdentificador + titulo.toLowerCase();
+      var save = await salvarIdentificador(identificador);
+    } else {
+      let arquivos = $("#formListaArquivos")
+        .val()
+        .toString()
+        .replace(/(\r\n|\n|\r)/gm, "")
+        .split(";");
+      arquivos.forEach(arquivo => {
+        let nomeConfig = $("#formPrefixoNome").val();
+        var titulo = nomeConfig + arquivo
+  
+        var rasc = await gerarRascunho(titulo);
+        idRascunho = rasc.id;
+        tituloRascunho = rasc.titulo;
+        idEntidade = rasc.entidadeId;
+  
+        let template = $("#formCodigo").val();
+        let codigo = template.replace("NOMEDOARQUIVOTEMPLATE", arquivo);
+  
+        var ger = await gerarCodigo(codigo);
+  
+        var pub = await publicarCodigo();
+        idPublicacao = pub.id;
+  
+        let prefixoIdentificador = $("#formPrefixoIdentificador").val();
+        let titulo = arquivo;
+        for (let i = 0; i < 15; i++) {
+          titulo = titulo.replace(" ", "_");
+        }
+  
+        let identificador = prefixoIdentificador + titulo.toLowerCase();
+        var save = await salvarIdentificador(identificador);
+      });
+    }
 
     toastr.success("Script gerado com sucesso!");
   } catch (error) {
@@ -56,12 +111,9 @@ async function salvar() {
   }
 }
 
-async function gerarRascunho() {
+async function gerarRascunho(titulo) {
   bearerToken = $("#formBearer").val();
   userAcess = $("#formUserAcess").val();
-
-  let nomeConfig = $("#formPrefixoNome").val();
-  var titulo = nomeConfig + $("#formNomeArquivo").val();
 
   return $.ajax({
     url: "https://scripts.cloud.betha.com.br/scripts/v1/api/rascunhos",
@@ -94,12 +146,7 @@ async function gerarRascunho() {
   });
 }
 
-async function gerarCodigo() {
-  let nomeArquivo = $("#formNomeArquivo").val();
-  let template = $("#formCodigo").val();
-
-  var codigo = template.replace("NOMEDOARQUIVOTEMPLATE", nomeArquivo);
-
+async function gerarCodigo(codigo) {
   if (idRascunho) {
     if (codigo) {
       return $.ajax({
@@ -173,20 +220,12 @@ async function publicarCodigo() {
   }
 }
 
-async function salvarIdentificador() {
-  let prefixoIdentificador = $("#formPrefixoIdentificador").val();
-  var titulo = $("#formNomeArquivo").val();
-  for (var i = 0; i < 15; i++) {
-    titulo = titulo.replace(" ", "_");
-  }
-
-  titulo = prefixoIdentificador + titulo.toLowerCase();
-
+async function salvarIdentificador(identificador) {
   if (idPublicacao) {
     return $.ajax({
       url: `https://scripts.cloud.betha.com.br/scripts/v1/api/scripts/${idPublicacao}/identificador`,
       type: "PUT",
-      data: titulo,
+      data: identificador,
       headers: {
         authorization: bearerToken,
         // "origin": "https://prestacao-contas.cloud.betha.com.br",
@@ -204,6 +243,26 @@ async function salvarIdentificador() {
       }
     });
   }
+}
+
+function alterarTipoGeracao(elem) {
+  if (elem.selectedIndex === 0) {
+    tipoGeracao = "individual";
+    mostrarIndividual();
+  } else if (elem.selectedIndex === 1) {
+    tipoGeracao = "lista";
+    mostrarListaArquivos();
+  }
+}
+
+function mostrarIndividual() {
+  document.querySelector("#individual").style.display = "block";
+  document.querySelector("#listaArquivos").style.display = "none";
+}
+
+function mostrarListaArquivos() {
+  document.querySelector("#individual").style.display = "none";
+  document.querySelector("#listaArquivos").style.display = "block";
 }
 
 function mostrarPrincipal() {

@@ -69,14 +69,24 @@
                     <form>
                         <div class="row">
                             <div class="form-group">
+                                <label for="formTipoDeGeração">Tipo de geração</label>
+                                <select class="form-control" id="formTipoDeGeracao" onchange="alterarTipoGeracao(this)">
+                                    <option>Individual</option>
+                                    <option>Lista</option>
+                                </select>
+                            </div>
+                            <div id="individual" class="form-group">
                                 <label for="formNomeArquivo">Nome do Arquivo</label>
                                 <input type="nomeArquivo" class="form-control" id="formNomeArquivo"
-                                    aria-describedby="emailHelp" placeholder="Digite o nome para o arquivo no template">
+                                    aria-describedby="formNomeArquivo"
+                                    placeholder="Digite o nome para o arquivo no template">
+                            </div>
+                            <div id="listaArquivos" class="form-group">
+                                <label for="formListaArquivos">Lista de arquivos</label>
+                                <textarea placeholder="Insira os nomes separados por ';'" class="form-control" id="formListaArquivos" rows="25"></textarea>
                             </div>
                         </div>
-                        <div class="row">
-                            <a onclick="salvar()" type="submit" class="btn btn-primary">SALVAR</a>
-                        </div>
+                        <a onclick="salvar()" type="submit" class="btn btn-primary">SALVAR</a>
                     </form>
                 </div>
             </div>

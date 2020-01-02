@@ -2,6 +2,10 @@
   width: 5%;
 }
 
+#listaArquivos{
+  display: none;
+}
+
 #configuracao {
   display: none;
 }
