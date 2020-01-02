@@ -8,107 +8,179 @@ let idPublicacao = undefined;
 let tipoGeracao = "individual";
 
 async function salvar() {
-  try {
-    if ($("#formNomeArquivo").val() === "" && tipoGeracao === "individual") {
-      toastr.error("Nome do arquivo não informado");
-      return;
+  if(document.querySelector("#botaoSalvar").getAttribute('disabled') === 'true'){
+    toastr.error("Aguarde o término do processamento");
+    return;
+  }
+
+  document.querySelector("#botaoSalvar").setAttribute('disabled','true')
+  document.querySelector("#progressoInterno").style.width = "0%";
+  document.querySelector("#progressoInterno").innerText = "0%";
+
+  if ($("#formNomeArquivo").val() === "" && tipoGeracao === "individual") {
+    toastr.error("Nome do arquivo não informado");
+    document.querySelector("#botaoSalvar").removeAttribute('disabled')
+    return;
+  }
+
+  if ($("#formListaArquivos").val() === "" && tipoGeracao === "lista") {
+    toastr.error("Nenhum arquivo informado");
+    document.querySelector("#botaoSalvar").removeAttribute('disabled')
+    return;
+  }
+
+  if ($("#formBearer").val() === "") {
+    toastr.error("Token não informado");
+    document.querySelector("#botaoSalvar").removeAttribute('disabled')
+    return;
+  }
+
+  if ($("#formUserAcess").val() === "") {
+    toastr.error("UserAcess não informado");
+    document.querySelector("#botaoSalvar").removeAttribute('disabled')
+    return;
+  }
+
+  if ($("#formPrefixoNome").val() === "") {
+    toastr.error("Prefixo do Nome não informado");
+    document.querySelector("#botaoSalvar").removeAttribute('disabled')
+    return;
+  }
+
+  if ($("#formPrefixoIdentificador").val() === "") {
+    toastr.error("Prefixo do Identificador não informado");
+    document.querySelector("#botaoSalvar").removeAttribute('disabled')
+    return;
+  }
+
+  if ($("#formCodigo").val() === "") {
+    toastr.error("Template de código não informado");
+    document.querySelector("#botaoSalvar").removeAttribute('disabled')
+    return;
+  }
+
+  if (tipoGeracao === "individual") {
+    let nomeConfig = $("#formPrefixoNome").val();
+    var tituloArq = nomeConfig + $("#formNomeArquivo").val();
+
+    var rasc = await gerarRascunho(tituloArq);
+    idRascunho = rasc.id;
+    tituloRascunho = rasc.titulo;
+    idEntidade = rasc.entidadeId;
+
+    let nomeArquivo = $("#formNomeArquivo").val();
+    let template = $("#formCodigo").val();
+
+    let codigo = template.replace("NOMEDOARQUIVOTEMPLATE", nomeArquivo);
+
+    var ger = await gerarCodigo(codigo, idRascunho);
+
+    var pub = await publicarCodigo(idRascunho);
+    idPublicacao = pub.id;
+
+    let prefixoIdentificador = $("#formPrefixoIdentificador").val();
+    let titulo = $("#formNomeArquivo").val();
+    for (let i = 0; i < 15; i++) {
+      titulo = titulo.replace(" ", "_");
     }
 
-    if ($("#formListaArquivos").val() === "" && tipoGeracao === "lista") {
-      toastr.error("Nenhum arquivo informado");
-      return;
-    }
+    let identificador = prefixoIdentificador + titulo.toLowerCase();
+    var save = await salvarIdentificador(identificador, idPublicacao);
+    toastr.success("Script gerado com sucesso!");
+  } else {
+    let arquivos = $("#formListaArquivos")
+      .val()
+      .toString()
+      .trim()
+      .replace(/(\r\n|\n|\r)/gm, "")
+      .split(";");
 
-    if ($("#formBearer").val() === "") {
-      toastr.error("Token não informado");
-      return;
-    }
+    let tamanhoProgresso = 100 / arquivos.length;
 
-    if ($("#formUserAcess").val() === "") {
-      toastr.error("UserAcess não informado");
-      return;
-    }
-
-    if ($("#formPrefixoNome").val() === "") {
-      toastr.error("Prefixo do Nome não informado");
-      return;
-    }
-
-    if ($("#formPrefixoIdentificador").val() === "") {
-      toastr.error("Prefixo do Identificador não informado");
-      return;
-    }
-
-    if ($("#formCodigo").val() === "") {
-      toastr.error("Template de código não informado");
-      return;
-    }
-
-    if (tipoGeracao === "individual") {
-      let nomeConfig = $("#formPrefixoNome").val();
-      var titulo = nomeConfig + $("#formNomeArquivo").val();
-
-      var rasc = await gerarRascunho(titulo);
-      idRascunho = rasc.id;
-      tituloRascunho = rasc.titulo;
-      idEntidade = rasc.entidadeId;
-
-      let nomeArquivo = $("#formNomeArquivo").val();
-      let template = $("#formCodigo").val();
-
-      let codigo = template.replace("NOMEDOARQUIVOTEMPLATE", nomeArquivo);
-
-      var ger = await gerarCodigo(codigo);
-
-      var pub = await publicarCodigo();
-      idPublicacao = pub.id;
-
-      let prefixoIdentificador = $("#formPrefixoIdentificador").val();
-      let titulo = $("#formNomeArquivo").val();
-      for (let i = 0; i < 15; i++) {
-        titulo = titulo.replace(" ", "_");
+    for (let i = 0; i < arquivos.length; i++) {
+      arquivo = arquivos[i];
+      if ($("#formListaLogs").val() == "") {
+        $("#formListaLogs").val(buscarDataHoraAtual() + " GERAÇÃO: " + arquivo);
+      } else {
+        $("#formListaLogs").val(
+          $("#formListaLogs").val() +
+            "\n" +
+            buscarDataHoraAtual() +
+            " GERAÇÃO: " +
+            arquivo
+        );
       }
 
-      let identificador = prefixoIdentificador + titulo.toLowerCase();
-      var save = await salvarIdentificador(identificador);
-    } else {
-      let arquivos = $("#formListaArquivos")
-        .val()
-        .toString()
-        .replace(/(\r\n|\n|\r)/gm, "")
-        .split(";");
-      arquivos.forEach(arquivo => {
+      try {
+        if (arquivo == "") {
+          return;
+        }
+
+        if (arquivo.includes('"')) {
+          toastr.error("Nome do arquivo não pode conter caracteres especiais");
+          return;
+        }
+
         let nomeConfig = $("#formPrefixoNome").val();
-        var titulo = nomeConfig + arquivo
-  
+        var titulo = nomeConfig + arquivo;
+
         var rasc = await gerarRascunho(titulo);
         idRascunho = rasc.id;
         tituloRascunho = rasc.titulo;
         idEntidade = rasc.entidadeId;
-  
+
         let template = $("#formCodigo").val();
         let codigo = template.replace("NOMEDOARQUIVOTEMPLATE", arquivo);
-  
-        var ger = await gerarCodigo(codigo);
-  
-        var pub = await publicarCodigo();
-        idPublicacao = pub.id;
-  
-        let prefixoIdentificador = $("#formPrefixoIdentificador").val();
-        let titulo = arquivo;
-        for (let i = 0; i < 15; i++) {
-          titulo = titulo.replace(" ", "_");
-        }
-  
-        let identificador = prefixoIdentificador + titulo.toLowerCase();
-        var save = await salvarIdentificador(identificador);
-      });
-    }
 
-    toastr.success("Script gerado com sucesso!");
-  } catch (error) {
-    //toastr.error("Ocorreu um erro ao gerar o script:");
+        var ger = await gerarCodigo(codigo, idRascunho);
+
+        var pub = await publicarCodigo(idRascunho);
+        idPublicacao = pub.id;
+
+        let prefixoIdentificador = $("#formPrefixoIdentificador").val();
+        let tituloArq = arquivo;
+        for (let i = 0; i < 15; i++) {
+          tituloArq = tituloArq.replace(" ", "_");
+        }
+
+        let identificador = prefixoIdentificador + tituloArq.toLowerCase();
+        var save = await salvarIdentificador(identificador, idPublicacao);
+
+        await new Promise(r => setTimeout(r, 5000));
+        toastr.success(`${arquivo} gerado com sucesso!`);
+        let tamanhoAtual = Number(
+          document
+            .querySelector("#progressoInterno")
+            .style.width.replace("%", "")
+        );
+        document.querySelector("#progressoInterno").style.width =
+          Math.round(tamanhoAtual + tamanhoProgresso) + "%";
+        document.querySelector("#progressoInterno").innerText =
+          Math.round(tamanhoAtual + tamanhoProgresso) + "%";
+      } catch (error) {
+        console.log(`Ocorreu um erro ao gerar: ${arquivo} -> ${error}`);
+      }
+    }
   }
+  document.querySelector("#botaoSalvar").removeAttribute('disabled')
+}
+
+function buscarDataHoraAtual() {
+  let dataAtual = new Date();
+  dataAtual =
+    dataAtual.getFullYear() +
+    "-" +
+    dataAtual.getMonth() +
+    "-" +
+    dataAtual.getDate() +
+    ":" +
+    dataAtual.getHours() +
+    ":" +
+    dataAtual.getMinutes() +
+    ":" +
+    dataAtual.getSeconds();
+
+  return dataAtual;
 }
 
 async function gerarRascunho(titulo) {
@@ -137,16 +209,29 @@ async function gerarRascunho(titulo) {
       "user-access": userAcess
     },
     success: data => {
+      $("#formListaLogs").val(
+        $("#formListaLogs").val() +
+          "\n" +
+          buscarDataHoraAtual() +
+          " Sucesso ao criar rascunho"
+      );
       console.log("Sucesso ao criar rascunho");
     },
     error: function(xhr, ajaxOptions, thrownError) {
+      $("#formListaLogs").val(
+        $("#formListaLogs").val() +
+          "\n" +
+          buscarDataHoraAtual() +
+          " ERRO: " +
+          xhr.responseText
+      );
       var error = JSON.parse(xhr.responseText);
       toastr.error(xhr.status + "-" + error.message);
     }
   });
 }
 
-async function gerarCodigo(codigo) {
+async function gerarCodigo(codigo, idRascunho) {
   if (idRascunho) {
     if (codigo) {
       return $.ajax({
@@ -184,9 +269,22 @@ async function gerarCodigo(codigo) {
           "user-access": userAcess
         },
         success: function(data) {
+          $("#formListaLogs").val(
+            $("#formListaLogs").val() +
+              "\n" +
+              buscarDataHoraAtual() +
+              " Código compilado com sucesso"
+          );
           console.log("Código compilado com sucesso");
         },
         error: function(xhr, ajaxOptions, thrownError) {
+          $("#formListaLogs").val(
+            $("#formListaLogs").val() +
+              "\n" +
+              buscarDataHoraAtual() +
+              " ERRO: " +
+              xhr.responseText
+          );
           var error = JSON.parse(xhr.responseText);
           toastr.error(xhr.status + "-" + error.message);
         }
@@ -195,7 +293,7 @@ async function gerarCodigo(codigo) {
   }
 }
 
-async function publicarCodigo() {
+async function publicarCodigo(idRascunho) {
   if (idRascunho) {
     return $.ajax({
       url: `https://scripts.cloud.betha.com.br/scripts/v1/api/rascunhos/${idRascunho}/acoes/publicar`,
@@ -210,9 +308,22 @@ async function publicarCodigo() {
         "user-access": userAcess
       },
       success: function(data) {
+        $("#formListaLogs").val(
+          $("#formListaLogs").val() +
+            "\n" +
+            buscarDataHoraAtual() +
+            " Código publicado com sucesso"
+        );
         console.log("Código publicado com sucesso");
       },
       error: function(xhr, ajaxOptions, thrownError) {
+        $("#formListaLogs").val(
+          $("#formListaLogs").val() +
+            "\n" +
+            buscarDataHoraAtual() +
+            " ERRO: " +
+            xhr.responseText
+        );
         var error = JSON.parse(xhr.responseText);
         toastr.error(xhr.status + "-" + error.message);
       }
@@ -220,7 +331,7 @@ async function publicarCodigo() {
   }
 }
 
-async function salvarIdentificador(identificador) {
+async function salvarIdentificador(identificador, idPublicacao) {
   if (idPublicacao) {
     return $.ajax({
       url: `https://scripts.cloud.betha.com.br/scripts/v1/api/scripts/${idPublicacao}/identificador`,
@@ -235,9 +346,22 @@ async function salvarIdentificador(identificador) {
         "user-access": userAcess
       },
       success: function(data) {
+        $("#formListaLogs").val(
+          $("#formListaLogs").val() +
+            "\n" +
+            buscarDataHoraAtual() +
+            " Identificador salvo com sucesso"
+        );
         console.log("Identificador salvo com sucesso");
       },
       error: function(xhr, ajaxOptions, thrownError) {
+        $("#formListaLogs").val(
+          $("#formListaLogs").val() +
+            "\n" +
+            buscarDataHoraAtual() +
+            " ERRO: " +
+            xhr.responseText
+        );
         var error = JSON.parse(xhr.responseText);
         toastr.error(xhr.status + "-" + error.message);
       }
@@ -258,11 +382,15 @@ function alterarTipoGeracao(elem) {
 function mostrarIndividual() {
   document.querySelector("#individual").style.display = "block";
   document.querySelector("#listaArquivos").style.display = "none";
+  document.querySelector("#progressoLista").style.display = "none";
+  document.querySelector("#botaoLog").style.display = "none";
 }
 
 function mostrarListaArquivos() {
   document.querySelector("#individual").style.display = "none";
   document.querySelector("#listaArquivos").style.display = "block";
+  document.querySelector("#progressoLista").style.display = "block";
+  document.querySelector("#botaoLog").style.display = "inline";
 }
 
 function mostrarPrincipal() {
@@ -273,6 +401,10 @@ function mostrarPrincipal() {
 function mostrarConfiguracoes() {
   document.querySelector("#principal").style.display = "none";
   document.querySelector("#configuracao").style.display = "block";
+}
+
+function mostrarLogs() {
+  document.querySelector("#modalLog").style.display = "block";
 }
 
 function gerarTemplate() {
@@ -326,44 +458,6 @@ function gerarIdentificador() {
     );
 }
 
-// function enviarPesquisa() {
-//   var nome = $("#formNome").val();
-//   var pergunta1 = $("#formPergunta1")
-//     .find(":selected")
-//     .val();
-//   var pergunta2 = $("#formPergunta2")
-//     .find(":selected")
-//     .val();
-//   var nota = $("#formNota")
-//     .find(":selected")
-//     .val();
-//   var comentario = $("#formComentario").val();
-
-//   if (!nome) {
-//     alert("É necessário informar o nome");
-//     return;
-//   }
-
-//   $.post(
-//     "https://pesquisasatisfacao.herokuapp.com/",
-//     {
-//       nome: nome,
-//       pergunta1: pergunta1,
-//       pergunta2: pergunta2,
-//       nota: nota,
-//       comentario: comentario
-//     },
-//     function(result) {
-//       if (result === "Sucesso!") {
-//         alert(result);
-//         $("#formNome").val("");
-//         $("#formComentario").val("");
-//         $("#formPergunta1").prop("selectedIndex", 0);
-//         $("#formPergunta2").prop("selectedIndex", 0);
-//         $("#formNota").prop("selectedIndex", 0);
-//       } else {
-//         alert("Erro");
-//       }
-//     }
-//   );
-// }
+function escondeModal(id) {
+  document.querySelector("#" + id).style.display = "none";
+}

@@ -2,7 +2,15 @@
   width: 5%;
 }
 
-#listaArquivos{
+#listaArquivos {
+  display: none;
+}
+
+#botaoLog{
+  display: none;
+}
+
+#progressoLista {
   display: none;
 }
 
