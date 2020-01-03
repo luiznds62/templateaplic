@@ -7,308 +7,6 @@ let idEntidade = undefined;
 let idPublicacao = undefined;
 let tipoGeracao = "individual";
 
-function mostrarIndividual() {
-  document.querySelector("#individual").style.display = "block";
-  document.querySelector("#listaArquivos").style.display = "none";
-  document.querySelector("#progressoLista").style.display = "none";
-  document.querySelector("#botaoLog").style.display = "none";
-}
-
-function mostrarListaArquivos() {
-  document.querySelector("#individual").style.display = "none";
-  document.querySelector("#listaArquivos").style.display = "block";
-  document.querySelector("#progressoLista").style.display = "block";
-  document.querySelector("#botaoLog").style.display = "inline";
-}
-
-function mostrarTipoMapasTextos() {
-  document.querySelector("#individual").style.display = "none";
-  document.querySelector("#listaArquivos").style.display = "none";
-  document.querySelector("#progressoLista").style.display = "none";
-  document.querySelector("#botaoLog").style.display = "inline";
-}
-
-function mostrarComponenteLogs() {
-  document.querySelector("#individual").style.display = "none";
-  document.querySelector("#listaArquivos").style.display = "none";
-  document.querySelector("#progressoLista").style.display = "none";
-  document.querySelector("#botaoLog").style.display = "inline";
-}
-
-function mostrarCentralizador() {
-  document.querySelector("#individual").style.display = "none";
-  document.querySelector("#listaArquivos").style.display = "none";
-  document.querySelector("#progressoLista").style.display = "none";
-  document.querySelector("#botaoLog").style.display = "inline";
-}
-
-function mostrarPrincipal() {
-  document.querySelector("#principal").style.display = "block";
-  document.querySelector("#configuracao").style.display = "none";
-}
-
-function mostrarConfiguracoes() {
-  document.querySelector("#principal").style.display = "none";
-  document.querySelector("#configuracao").style.display = "block";
-}
-
-function mostrarLogs() {
-  document.querySelector("#modalLog").style.display = "block";
-}
-
-function buscarCodigoCentralizadorUtilitarios(prefixo) {
-  codigo = `
-lComponentes = []
-
-// Utilitários genéricos
-lComponentes << [nome: "${prefixo}pdc_log",     instancia: importar("${prefixo}pdc_log")]
-lComponentes << [nome: "${prefixo}pdc_tipos",   instancia: importar("${prefixo}pdc_tipos")]
-lComponentes << [nome: "${prefixo}pdc_datas",   instancia: importar("${prefixo}pdc_datas")]
-lComponentes << [nome: "${prefixo}pdc_mapas",   instancia: importar("${prefixo}pdc_mapas")]
-lComponentes << [nome: "${prefixo}pdc_api",     instancia: importar("${prefixo}pdc_api")]
-lComponentes << [nome: "${prefixo}pdc_numeros", instancia: importar("${prefixo}pdc_numeros")]
-
-// Gerador de pré-validações
-lComponentes << [nome: "${prefixo}util_prevalidacoes", instancia: importar("${prefixo}util_prevalidacoes")]
-
-// Utilitários
-lComponentes << [nome: "${prefixo}pdc_configuracao_recursos", instancia: importar("${prefixo}pdc_configuracao_recursos")]
-lComponentes << [nome: "${prefixo}utilitarios_url_cloud",     instancia: importar("${prefixo}utilitarios_url_cloud")]
-lComponentes << [nome: "${prefixo}pdc_utilitarios_cloud",     instancia: importar("${prefixo}pdc_utilitarios_cloud")]
-
-def getInstance = { nome ->
-return lComponentes.find{it.nome.toLowerCase() == nome.toLowerCase()}.instancia
-}
-
-def setComponente = { instance, nome ->
-lComponentes << [nome: nome, instancia: instance] 
-}
-
-Scripts.exportar(
-getInstance: getInstance,
-setComponente: setComponente
-)
-`;
-  return codigo;
-}
-
-function buscarCodigoLogs(tipos, mapas, textos) {
-  codigoLogs = `
-    tipos = importar "${tipos}"
-    mapas = importar "${mapas}"
-    textos = importar "${textos}"
-    `;
-  return codigoLogs;
-}
-
-function buscaCodigoTextos(identificadorTipos) {
-  codigoTextos = `
-  tipos = importar "${identificadorTipos}"
-
-  isTexto = { valor ->
-  retornar tipos.isTexto(valor)
-  } 
-
-  pegarEntre = { texto, l, r, truncarEspacos = false, ultimo = false ->
-  start = ultimo ? texto.lastIndexOf(l) : texto.indexOf(l) 
-  resultado = start > 0 ?
-          r ? texto.substring(start + l.length(), ultimo ? texto.lastIndexOf(r) : texto.indexOf(r)) : texto.substring(start + l.length()) 
-                : texto
-  retornar truncarEspacos ? resultado.trim() : resultado
-  }
-
-  pegarUltimoEntre = { texto, l, r, truncarEspacos = false ->
-  retornar pegarEntre(texto, l, r, truncarEspacos, true)
-  }
-
-  Scripts.exportar( 
-  isTexto: isTexto,
-  cp1251_ci_as: cp1251_ci_as,
-  cpSimam: cpSimam,
-  cpSicom: cpSicom,
-  pegarEntre: pegarEntre,
-  pegarUltimoEntre: pegarUltimoEntre
-  )
-  `;
-
-  return codigoTextos;
-}
-
-function buscaCodigoMapas(identificadorTipos) {
-  codigoMapas = `
-  tipos = importar "${identificadorTipos}"
-  
-  mescla = { maps ->
-  resultado = [:]
-
-  if (maps) {
-  maps.each { map -> resultado << map }
-  }
-
-  return resultado
-  }
-  
-  mesclaRecursivo = { maps ->
-  resultado = [:]
-
-  if (maps) {
-  maps.each { map ->
-  map.each { k, v -> resultado[k] = resultado[k] instanceof Map ? mescla(resultado[k], v) : v }
-  }
-  }
-
-  return resultado
-  }
-  
-  buscaValor = { map, campos ->
-  buscaValor = { subMap, listaCampos ->
-  percorrer(listaCampos) { item, index ->
-  valor = subMap[item]
-
-  se (tipos.isRegistroAtivo(valor) || tipos.isMapa(valor)) {
-  buscaValor(valor, listaCampos.subList(index + 1, listaCampos.size()))  
-  }
-
-  parar()
-  }
-  
-  retornar valor
-  }
-
-  retornar buscaValor(map, campos.expressao(~/\\./).dividir())
-  }
-  
-  pegaValorSeExisteChave = { mapa, chave, padrao  ->
-  return !tipos.isMapa(mapa) ? padrao : mapa.containsKey(chave) ? mapa[chave] : padrao
-  }
-  
-  somaValor = { mapa, atributo, valor ->
-  imprimir "Valor do mapa: $mapa"
-  imprimir "Valor do Atributo: $atributo"
-  imprimir "Valor do valor: $valor"
-
-  return mapa.put(atributo,(mapa.get(atributo)?:0 + valor))
-  }
-  
-  isMapa = { valor ->
-  return tipos.isMapa(valor)
-  }
-  
-  Scripts.exportar( 
-  somaValor: somaValor,
-  isMapa: isMapa,
-  mescla: mescla,
-  mesclaRecursivo: mesclaRecursivo,
-  buscaValor: buscaValor,
-  pegaValorSeExisteChave: pegaValorSeExisteChave
-  )
- `;
-  return codigoMapas;
-}
-
-function buscaCodigoTipos() {
-  codigoTipos = `
-    seNulo = { valor, valorSeNulo ->
-    return valor ?: valorSeNulo
-    } 
-      
-    seVazio = { valor, valorSeVazio ->
-    return valor.vazio() ? valorSeVazio : valor
-    } 
-      
-    seNuloOuVazio = { valor, valorSeNuloOuVazio ->
-    return seVazio(seNulo(valor, valorSeNuloOuVazio), valorSeNuloOuVazio)
-    } 
-      
-    nuloParaZero = { valor ->
-    return seNulo(valor, 0)
-    } 
-      
-    nuloParaVazio = { valor ->
-    return seNulo(valor, "")
-    } 
-      
-    vazioParaZero = { valor ->
-    return seVazio(valor, 0)
-    } 
-      
-    isLista = { valor ->
-    return valor instanceof List || valor instanceof Collection
-    } 
-      
-    isMapa = { valor ->
-    return valor instanceof Map
-    } 
-      
-    isTexto = { valor ->
-    return valor instanceof String
-    } 
-      
-    isData = { valor ->
-    return valor instanceof Date
-    } 
-      
-    isNumero = { valor ->
-    retornar valor instanceof Number
-    } 
-      
-    isAtivo = { valor ->
-    return valor.getClass().toString().contains("com.betha.suite.dados.Ativo")
-    } 
-      
-    isRegistroAtivo = { valor ->
-    return valor.getClass().toString().contains("com.betha.suite.dados.RegistroAtivo")
-    } 
-      
-    isArquivo = { valor ->
-    return valor.getClass().toString().contains("com.betha.bfc.script.api.arquivos.padrao.CsvFileApi")
-    } 
-      
-    isMesmaClasse = { l, r ->
-    return l.getClass() == r.getClass() || l.getClass() in r.getClass() || r.getClass() in l.getClass()
-    } 
-      
-    isColecao = { valor ->
-    return isAtivo(valor) || isLista(valor)
-    } 
-      
-    ativoParaColecao = { params ->
-    resultado = []
-        
-    if (isAtivo(params.ativo)) {
-    if (params.chave && params.valor) {
-    resultado = params.ativo.collectEntries { r -> [r[params.chave], r[params.valor]] }
-    } else {
-    resultado.addAll(params.ativo)
-    }
-    return resultado
-    }
-    return params.ativo
-    } 
-      
-    Scripts.exportar( 
-    nuloParaZero: nuloParaZero,
-    vazioParaZero: vazioParaZero,
-    nuloParaVazio: nuloParaVazio,  
-    seNuloOuVazio: seNuloOuVazio,
-    seNulo: seNulo,
-    seVazio: seVazio,
-    isLista: isLista,
-    isMapa: isMapa,
-    isTexto: isTexto,
-    isData: isData,
-    isNumero: isNumero,
-    isAtivo: isAtivo,
-    isRegistroAtivo: isRegistroAtivo,
-    isArquivo: isArquivo,
-    isMesmaClasse: isMesmaClasse,
-    isColecao: isColecao,
-    ativoParaColecao: ativoParaColecao
-    )
-  `;
-  return codigoTipos;
-}
-
 async function salvar() {
   if (
     document.querySelector("#botaoSalvar").getAttribute("disabled") === "true"
@@ -367,33 +65,38 @@ async function salvar() {
   }
 
   if (tipoGeracao === "individual") {
-    let nomeConfig = $("#formPrefixoNome").val();
-    var tituloArq = nomeConfig + $("#formNomeArquivo").val();
+    try {
+      let rasc = await gerarRascunho(
+        $("#formPrefixoNome").val() + $("#formNomeArquivo").val()
+      );
+      idRascunho = rasc.id;
+      tituloRascunho = rasc.titulo;
+      idEntidade = rasc.entidadeId;
 
-    var rasc = await gerarRascunho(tituloArq);
-    idRascunho = rasc.id;
-    tituloRascunho = rasc.titulo;
-    idEntidade = rasc.entidadeId;
+      let codigo = $("#formCodigo")
+        .val()
+        .replace("NOMEDOARQUIVOTEMPLATE", $("#formNomeArquivo").val());
 
-    let nomeArquivo = $("#formNomeArquivo").val();
-    let template = $("#formCodigo").val();
+      let ger = await gerarCodigo(codigo, idRascunho);
 
-    let codigo = template.replace("NOMEDOARQUIVOTEMPLATE", nomeArquivo);
+      let pub = await publicarCodigo(idRascunho);
+      idPublicacao = pub.id;
 
-    var ger = await gerarCodigo(codigo, idRascunho);
+      let prefixoIdentificador = $("#formPrefixoIdentificador").val();
+      for (let i = 0; i < 15; i++) {
+        titulo = titulo.replace(" ", "_");
+      }
 
-    var pub = await publicarCodigo(idRascunho);
-    idPublicacao = pub.id;
-
-    let prefixoIdentificador = $("#formPrefixoIdentificador").val();
-    let titulo = $("#formNomeArquivo").val();
-    for (let i = 0; i < 15; i++) {
-      titulo = titulo.replace(" ", "_");
+      let identificador =
+        prefixoIdentificador +
+        $("#formNomeArquivo")
+          .val()
+          .toLowerCase();
+      let save = await salvarIdentificador(identificador, idPublicacao);
+      toastr.success("Script gerado com sucesso!");
+    } catch (error) {
+      document.querySelector("#botaoSalvar").removeAttribute("disabled");
     }
-
-    let identificador = prefixoIdentificador + titulo.toLowerCase();
-    var save = await salvarIdentificador(identificador, idPublicacao);
-    toastr.success("Script gerado com sucesso!");
   } else if (tipoGeracao === "lista") {
     let arquivos = $("#formListaArquivos")
       .val()
@@ -428,20 +131,18 @@ async function salvar() {
           return;
         }
 
-        let nomeConfig = $("#formPrefixoNome").val();
-        var titulo = nomeConfig + arquivo;
-
-        var rasc = await gerarRascunho(titulo);
+        let rasc = await gerarRascunho($("#formPrefixoNome").val() + arquivo);
         idRascunho = rasc.id;
         tituloRascunho = rasc.titulo;
         idEntidade = rasc.entidadeId;
 
-        let template = $("#formCodigo").val();
-        let codigo = template.replace("NOMEDOARQUIVOTEMPLATE", arquivo);
+        let codigo = $("#formCodigo")
+          .val()
+          .replace("NOMEDOARQUIVOTEMPLATE", arquivo);
 
-        var ger = await gerarCodigo(codigo, idRascunho);
+        let ger = await gerarCodigo(codigo, idRascunho);
 
-        var pub = await publicarCodigo(idRascunho);
+        let pub = await publicarCodigo(idRascunho);
         idPublicacao = pub.id;
 
         let prefixoIdentificador = $("#formPrefixoIdentificador").val();
@@ -451,7 +152,7 @@ async function salvar() {
         }
 
         let identificador = prefixoIdentificador + tituloArq.toLowerCase();
-        var save = await salvarIdentificador(identificador, idPublicacao);
+        let save = await salvarIdentificador(identificador, idPublicacao);
 
         await new Promise(r => setTimeout(r, 2000));
         toastr.success(`${arquivo} gerado com sucesso!`);
@@ -466,93 +167,140 @@ async function salvar() {
           Math.round(tamanhoAtual + tamanhoProgresso) + "%";
       } catch (error) {
         document.querySelector("#botaoSalvar").removeAttribute("disabled");
-        console.log(`Ocorreu um erro ao gerar: ${arquivo} -> ${error}`);
       }
     }
   } else if (tipoGeracao === "tiposmapastextos") {
-    let tipos = ["Tipos", "Mapas", "Textos"];
-    for (let i = 0; i < tipos.length; i++) {
-      let nomeConfig = $("#formPrefixoNome").val();
-      var tituloArq = nomeConfig + " " + tipos[i];
+    try {
+      let tipos = ["Tipos", "Mapas", "Textos"];
+      for (let i = 0; i < tipos.length; i++) {
+        let nomeConfig = $("#formPrefixoNome").val();
+        let tituloArq = nomeConfig + " " + tipos[i];
 
-      var rasc = await gerarRascunho(tituloArq);
+        let rasc = await gerarRascunho(tituloArq);
+        idRascunho = rasc.id;
+        tituloRascunho = rasc.titulo;
+        idEntidade = rasc.entidadeId;
+        let prefixoIdentificador = $("#formPrefixoIdentificador").val();
+
+        if (i === 0) {
+          let ger = await gerarCodigo(buscaCodigoTipos(), idRascunho);
+        } else if (i === 1) {
+          let ger = await gerarCodigo(
+            buscaCodigoMapas(prefixoIdentificador + "pdc_tipos"),
+            idRascunho
+          );
+        } else if (i === 2) {
+          let ger = await gerarCodigo(
+            buscaCodigoTextos(prefixoIdentificador + "pdc_tipos"),
+            idRascunho
+          );
+        }
+
+        let pub = await publicarCodigo(idRascunho);
+        idPublicacao = pub.id;
+
+        let identificador = "";
+        if (i === 0) {
+          identificador = prefixoIdentificador + "pdc_tipos";
+        } else if (i === 1) {
+          identificador = prefixoIdentificador + "pdc_mapas";
+        } else if (i === 2) {
+          identificador = prefixoIdentificador + "pdc_textos";
+        }
+
+        let save = await salvarIdentificador(identificador, idPublicacao);
+        toastr.success("Script gerado com sucesso!");
+      }
+    } catch (error) {
+      document.querySelector("#botaoSalvar").removeAttribute("disabled");
+    }
+  } else if (tipoGeracao === "logs") {
+    try {
+      let tituloArq = $("#formPrefixoNome").val() + " Logs";
+
+      let rasc = await gerarRascunho(tituloArq);
+      idRascunho = rasc.id;
+      tituloRascunho = rasc.titulo;
+      idEntidade = rasc.entidadeId;
+      let prefixoIdentificador = $("#formPrefixoIdentificador").val();
+      let identTipos = prefixoIdentificador + "pdc_tipos";
+      let identMapas = prefixoIdentificador + "pdc_mapas";
+      let identTextos = prefixoIdentificador + "pdc_textos";
+
+      let ger = await gerarCodigo(
+        buscarCodigoLogs(identTipos, identMapas, identTextos),
+        idRascunho
+      );
+
+      let pub = await publicarCodigo(idRascunho);
+      idPublicacao = pub.id;
+
+      let identificador = prefixoIdentificador + "pdc_logs";
+
+      let save = await salvarIdentificador(identificador, idPublicacao);
+      toastr.success("Script gerado com sucesso!");
+    } catch (error) {
+      document.querySelector("#botaoSalvar").removeAttribute("disabled");
+    }
+  } else if (tipoGeracao === "centralizadorutilitarios") {
+    try {
+      let tituloArq = $("#formPrefixoNome").val() + " Centralizador de Utilitários";
+
+      let rasc = await gerarRascunho(tituloArq);
       idRascunho = rasc.id;
       tituloRascunho = rasc.titulo;
       idEntidade = rasc.entidadeId;
       let prefixoIdentificador = $("#formPrefixoIdentificador").val();
 
-      if (i === 0) {
-        var ger = await gerarCodigo(buscaCodigoTipos(), idRascunho);
-      } else if (i === 1) {
-        var ger = await gerarCodigo(
-          buscaCodigoMapas(prefixoIdentificador + "pdc_tipos"),
-          idRascunho
-        );
-      } else if (i === 2) {
-        var ger = await gerarCodigo(
-          buscaCodigoTextos(prefixoIdentificador + "pdc_tipos"),
-          idRascunho
-        );
-      }
+      let ger = await gerarCodigo(
+        buscarCodigoCentralizadorUtilitarios(prefixoIdentificador),
+        idRascunho
+      );
 
-      var pub = await publicarCodigo(idRascunho);
+      let pub = await publicarCodigo(idRascunho);
       idPublicacao = pub.id;
 
-      let identificador = "";
-      if (i === 0) {
-        identificador = prefixoIdentificador + "pdc_tipos";
-      } else if (i === 1) {
-        identificador = prefixoIdentificador + "pdc_mapas";
-      } else if (i === 2) {
-        identificador = prefixoIdentificador + "pdc_textos";
-      }
+      let identificador =
+        prefixoIdentificador + "utilitarios_componentes_cloud";
 
-      var save = await salvarIdentificador(identificador, idPublicacao);
+      let save = await salvarIdentificador(identificador, idPublicacao);
       toastr.success("Script gerado com sucesso!");
+    } catch (error) {
+      document.querySelector("#botaoSalvar").removeAttribute("disabled");
     }
-  } else if (tipoGeracao === "logs") {
-    var tituloArq = $("#formPrefixoNome").val() + " Logs";
+  } else if (tipoGeracao === "gerenciadorcomponentes") {
+    try {
+      let arquivos = $("#formListaArquivos")
+      .val()
+      .toString()
+      .trim()
+      .replace(/(\r\n|\n|\r)/gm, "")
+      .split(";");
 
-    var rasc = await gerarRascunho(tituloArq);
-    idRascunho = rasc.id;
-    tituloRascunho = rasc.titulo;
-    idEntidade = rasc.entidadeId;
-    let prefixoIdentificador = $("#formPrefixoIdentificador").val();
-    let identTipos = prefixoIdentificador + "pdc_tipos";
-    let identMapas = prefixoIdentificador + "pdc_mapas";
-    let identTextos = prefixoIdentificador + "pdc_textos";
+      let tituloArq = $("#formPrefixoNome").val() + " Gerenciador de Identificadores";
 
-    var ger = await gerarCodigo(
-      buscarCodigoLogs(identTipos, identMapas, identTextos),
-      idRascunho
-    );
+      let rasc = await gerarRascunho(tituloArq);
+      idRascunho = rasc.id;
+      tituloRascunho = rasc.titulo;
+      idEntidade = rasc.entidadeId;
+      let prefixoIdentificador = $("#formPrefixoIdentificador").val();
 
-    var pub = await publicarCodigo(idRascunho);
-    idPublicacao = pub.id;
+      let ger = await gerarCodigo(
+        buscarCodigoGerenciadorComponentes(arquivos,prefixoIdentificador),
+        idRascunho
+      );
 
-    let identificador = prefixoIdentificador + "pdc_logs";
+      let pub = await publicarCodigo(idRascunho);
+      idPublicacao = pub.id;
 
-    var save = await salvarIdentificador(identificador, idPublicacao);
-    toastr.success("Script gerado com sucesso!");
-  } else if (tipoGeracao === "centralizadorutilitarios") {
-    var tituloArq =
-      $("#formPrefixoNome").val() + " Centralizador de Utilitários";
+      let identificador =
+        prefixoIdentificador + "utilitarios_identificadores";
 
-    var rasc = await gerarRascunho(tituloArq);
-    idRascunho = rasc.id;
-    tituloRascunho = rasc.titulo;
-    idEntidade = rasc.entidadeId;
-    let prefixoIdentificador = $("#formPrefixoIdentificador").val();
-
-    var ger = await gerarCodigo(buscarCodigoCentralizadorUtilitarios(prefixoIdentificador), idRascunho);
-
-    var pub = await publicarCodigo(idRascunho);
-    idPublicacao = pub.id;
-
-    let identificador = prefixoIdentificador + "utilitarios_componentes_cloud";
-
-    var save = await salvarIdentificador(identificador, idPublicacao);
-    toastr.success("Script gerado com sucesso!");
+      let save = await salvarIdentificador(identificador, idPublicacao);
+      toastr.success("Script gerado com sucesso!");
+    } catch (error) {
+      document.querySelector("#botaoSalvar").removeAttribute("disabled");
+    }
   }
 
   document.querySelector("#progressoInterno").style.width = "100%";
@@ -597,10 +345,6 @@ async function gerarRascunho(titulo) {
     headers: {
       authorization: bearerToken,
       "Content-Type": contentType,
-      // "origin": "https://prestacao-contas.cloud.betha.com.br",
-      // "referer": "https://prestacao-contas.cloud.betha.com.br/",
-      // "sec-fetch-mode": "cors",
-      // "sec-fetch-site": "same-site",
       "user-access": userAcess
     },
     success: data => {
@@ -610,7 +354,6 @@ async function gerarRascunho(titulo) {
           buscarDataHoraAtual() +
           " Sucesso ao criar rascunho"
       );
-      console.log("Sucesso ao criar rascunho");
     },
     error: function(xhr, ajaxOptions, thrownError) {
       $("#formListaLogs").val(
@@ -620,7 +363,7 @@ async function gerarRascunho(titulo) {
           " ERRO: " +
           xhr.responseText
       );
-      var error = JSON.parse(xhr.responseText);
+      let error = JSON.parse(xhr.responseText);
       toastr.error(xhr.status + "-" + error.message);
     }
   });
@@ -657,10 +400,6 @@ async function gerarCodigo(codigo, idRascunho) {
         headers: {
           authorization: bearerToken,
           "Content-Type": contentType,
-          // "origin": "https://prestacao-contas.cloud.betha.com.br",
-          // "referer": "https://prestacao-contas.cloud.betha.com.br/",
-          // "sec-fetch-mode": "cors",
-          // "sec-fetch-site": "same-site",
           "user-access": userAcess
         },
         success: function(data) {
@@ -670,7 +409,6 @@ async function gerarCodigo(codigo, idRascunho) {
               buscarDataHoraAtual() +
               " Código compilado com sucesso"
           );
-          console.log("Código compilado com sucesso");
         },
         error: function(xhr, ajaxOptions, thrownError) {
           $("#formListaLogs").val(
@@ -680,7 +418,7 @@ async function gerarCodigo(codigo, idRascunho) {
               " ERRO: " +
               xhr.responseText
           );
-          var error = JSON.parse(xhr.responseText);
+          let error = JSON.parse(xhr.responseText);
           toastr.error(xhr.status + "-" + error.message);
         }
       });
@@ -696,10 +434,6 @@ async function publicarCodigo(idRascunho) {
       headers: {
         authorization: bearerToken,
         "Content-Type": contentType,
-        // "origin": "https://prestacao-contas.cloud.betha.com.br",
-        // "referer": "https://prestacao-contas.cloud.betha.com.br/",
-        // "sec-fetch-mode": "cors",
-        // "sec-fetch-site": "same-site",
         "user-access": userAcess
       },
       success: function(data) {
@@ -709,7 +443,6 @@ async function publicarCodigo(idRascunho) {
             buscarDataHoraAtual() +
             " Código publicado com sucesso"
         );
-        console.log("Código publicado com sucesso");
       },
       error: function(xhr, ajaxOptions, thrownError) {
         $("#formListaLogs").val(
@@ -719,7 +452,7 @@ async function publicarCodigo(idRascunho) {
             " ERRO: " +
             xhr.responseText
         );
-        var error = JSON.parse(xhr.responseText);
+        let error = JSON.parse(xhr.responseText);
         toastr.error(xhr.status + "-" + error.message);
       }
     });
@@ -734,10 +467,6 @@ async function salvarIdentificador(identificador, idPublicacao) {
       data: identificador,
       headers: {
         authorization: bearerToken,
-        // "origin": "https://prestacao-contas.cloud.betha.com.br",
-        // "referer": "https://prestacao-contas.cloud.betha.com.br/",
-        // "sec-fetch-mode": "cors",
-        // "sec-fetch-site": "same-site",
         "user-access": userAcess
       },
       success: function(data) {
@@ -747,7 +476,6 @@ async function salvarIdentificador(identificador, idPublicacao) {
             buscarDataHoraAtual() +
             " Identificador salvo com sucesso"
         );
-        console.log("Identificador salvo com sucesso");
       },
       error: function(xhr, ajaxOptions, thrownError) {
         $("#formListaLogs").val(
@@ -757,85 +485,9 @@ async function salvarIdentificador(identificador, idPublicacao) {
             " ERRO: " +
             xhr.responseText
         );
-        var error = JSON.parse(xhr.responseText);
+        let error = JSON.parse(xhr.responseText);
         toastr.error(xhr.status + "-" + error.message);
       }
     });
   }
-}
-
-function alterarTipoGeracao(elem) {
-  if (elem.selectedIndex === 0) {
-    tipoGeracao = "individual";
-    mostrarIndividual();
-  } else if (elem.selectedIndex === 1) {
-    tipoGeracao = "lista";
-    mostrarListaArquivos();
-  } else if (elem.selectedIndex === 2) {
-    tipoGeracao = "gerenciadorcomponentes";
-  } else if (elem.selectedIndex === 3) {
-    tipoGeracao = "centralizadorutilitarios";
-    mostrarCentralizador();
-  } else if (elem.selectedIndex === 4) {
-    tipoGeracao = "logs";
-    mostrarComponenteLogs();
-  } else if (elem.selectedIndex === 5) {
-    tipoGeracao = "tiposmapastextos";
-    mostrarTipoMapasTextos();
-  }
-}
-
-function gerarTemplate() {
-  let nomeArquivo = $("#formNomeArquivo").val();
-  let template = $("#formCodigo").val();
-
-  var codigo = template.replace("NOMEDOARQUIVOTEMPLATE", nomeArquivo);
-
-  navigator.clipboard.writeText(codigo).then(
-    function() {
-      console.log("Async: Copiado com sucesso para o Clipboard!");
-    },
-    function(err) {
-      console.error("Async: Erro ao copiar: ", err);
-    }
-  );
-}
-
-function gerarNome() {
-  let nomeConfig = $("#formPrefixoNome").val();
-  var titulo = nomeConfig + $("#formNomeArquivo").val();
-
-  navigator.clipboard
-    .writeText(titulo)
-    .toUpperCase()
-    .then(
-      function() {
-        console.log("Async: Copiado com sucesso para o Clipboard!");
-      },
-      function(err) {
-        console.error("Async: Erro ao copiar: ", err);
-      }
-    );
-}
-
-function gerarIdentificador() {
-  let prefixoIdentificador = $("#formPrefixoIdentificador").val();
-  var titulo = $("#formNomeArquivo").val();
-  for (var i = 0; i < 15; i++) {
-    titulo = titulo.replace(" ", "_");
-  }
-  navigator.clipboard
-    .writeText(prefixoIdentificador + titulo.toLowerCase())
-    .then(
-      function() {
-        console.log("Async: Copiado com sucesso para o Clipboard!");
-      },
-      function(err) {
-        console.error("Async: Erro ao copiar: ", err);
-      }
-    );
-}
-
-function escondeModal(id) {
-  document.querySelector("#" + id).style.display = "none";
 }
