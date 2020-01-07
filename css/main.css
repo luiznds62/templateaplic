@@ -18,6 +18,10 @@
   display: none;
 }
 
+#exportacoes {
+  display: none;
+}
+
 #formListaLogs{
   background: url(http://i.imgur.com/2cOaJ.png); 
   background-attachment: local; 

@@ -43,10 +43,18 @@ function mostrarGerenciadorComponentes() {
 function mostrarPrincipal() {
   document.querySelector("#principal").style.display = "block";
   document.querySelector("#configuracao").style.display = "none";
+  document.querySelector("#exportacoes").style.display = "none";
+}
+
+function mostrarExportacoes() {
+  document.querySelector("#principal").style.display = "none";
+  document.querySelector("#configuracao").style.display = "none";
+  document.querySelector("#exportacoes").style.display = "block";
 }
 
 function mostrarConfiguracoes() {
   document.querySelector("#principal").style.display = "none";
+  document.querySelector("#exportacoes").style.display = "none";
   document.querySelector("#configuracao").style.display = "block";
 }
 

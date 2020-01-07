@@ -6,6 +6,308 @@ let tituloRascunho = undefined;
 let idEntidade = undefined;
 let idPublicacao = undefined;
 let tipoGeracao = "individual";
+let limiteReq = 100;
+
+async function buscarComponentes(offset = 0) {
+  return $.ajax({
+    url: `https://scripts.cloud.betha.com.br/scripts/v1/api/componentes?limit=100&offset=${offset}`,
+    type: "GET",
+    headers: {
+      authorization: $("#formBearer").val(),
+      "Content-Type": contentType,
+      "user-access": $("#formUserAcess").val()
+    },
+    success: data => {
+      console.log("Retornados com sucesso");
+    },
+    error: function(xhr, ajaxOptions, thrownError) {
+      console.log("Erro ao buscar");
+    }
+  });
+}
+
+async function buscarScripts(offset = 0) {
+  return $.ajax({
+    url: `https://scripts.cloud.betha.com.br/scripts/v1/api/scripts?limit=100&offset=${offset}`,
+    type: "GET",
+    headers: {
+      authorization: $("#formBearer").val(),
+      "Content-Type": contentType,
+      "user-access": $("#formUserAcess").val()
+    },
+    success: data => {
+      console.log("Retornados com sucesso");
+    },
+    error: function(xhr, ajaxOptions, thrownError) {
+      console.log("Erro ao buscar");
+    }
+  });
+}
+
+async function buscarCriticas(offset = 0) {
+  return $.ajax({
+    url: `https://scripts.cloud.betha.com.br/scripts/v1/api/criticas?limit=100&offset=${offset}`,
+    type: "GET",
+    headers: {
+      authorization: $("#formBearer").val(),
+      "Content-Type": contentType,
+      "user-access": $("#formUserAcess").val()
+    },
+    success: data => {
+      console.log("Retornados com sucesso");
+    },
+    error: function(xhr, ajaxOptions, thrownError) {
+      console.log("Erro ao buscar");
+    }
+  });
+}
+
+async function buscarFontes(offset = 0) {
+  return $.ajax({
+    url: `https://scripts.cloud.betha.com.br/scripts/v1/api/fontes-dinamicas?limit=100&offset=${offset}`,
+    type: "GET",
+    headers: {
+      authorization: $("#formBearer").val(),
+      "Content-Type": contentType,
+      "user-access": $("#formUserAcess").val()
+    },
+    success: data => {
+      console.log("Retornados com sucesso");
+    },
+    error: function(xhr, ajaxOptions, thrownError) {
+      console.log("Erro ao buscar");
+    }
+  });
+}
+
+async function iniciarGeracao() {
+  if (
+    document.querySelector("#botaoGerarArquivos").getAttribute("disabled") ===
+    "true"
+  ) {
+    toastr.error("Aguarde o término do processamento");
+    return;
+  }
+
+  document.querySelector("#progressoListaDownload").style.width = "0%";
+  document.querySelector("#progressoListaDownload").innerText = "0%";
+
+  document
+    .querySelector("#botaoGerarArquivos")
+    .setAttribute("disabled", "true");
+
+  if ($("#formBearer").val() === "") {
+    toastr.error("Token não informado");
+    document.querySelector("#botaoGerarArquivos").removeAttribute("disabled");
+    return;
+  }
+
+  if ($("#formUserAcess").val() === "") {
+    toastr.error("UserAcess não informado");
+    document.querySelector("#botaoGerarArquivos").removeAttribute("disabled");
+    return;
+  }
+
+  let dadosScripts = [];
+  let dadosComponentes = [];
+  let dadosCriticas = [];
+  let dadosFontes = [];
+  let existeProximo = true;
+  let offset = 0;
+
+  try {
+    while (existeProximo) {
+      let dadosReq = await buscarComponentes(offset);
+      existeProximo = dadosReq.hasNext;
+      if (existeProximo) {
+        offset += limiteReq;
+      }
+
+      for (let i = 0; i < dadosReq.content.length; i++) {
+        dadosComponentes.push(dadosReq.content[i]);
+      }
+    }
+
+    offset = 0
+    existeProximo = true
+    while (existeProximo) {
+      let dadosReq = await buscarScripts(offset);
+      existeProximo = dadosReq.hasNext;
+      if (existeProximo) {
+        offset += limiteReq;
+      }
+
+      for (let i = 0; i < dadosReq.content.length; i++) {
+        dadosScripts.push(dadosReq.content[i]);
+      }
+    }
+
+    offset = 0
+    existeProximo = true
+    while (existeProximo) {
+      let dadosReq = await buscarCriticas(offset);
+      existeProximo = dadosReq.hasNext;
+      if (existeProximo) {
+        offset += limiteReq;
+      }
+
+      for (let i = 0; i < dadosReq.content.length; i++) {
+        dadosCriticas.push(dadosReq.content[i]);
+      }
+    }
+
+    offset = 0
+    existeProximo = true
+    while (existeProximo) {
+      let dadosReq = await buscarFontes(offset);
+      existeProximo = dadosReq.hasNext;
+      if (existeProximo) {
+        offset += limiteReq;
+      }
+
+      for (let i = 0; i < dadosReq.content.length; i++) {
+        dadosFontes.push(dadosReq.content[i]);
+      }
+    }
+
+  } catch (error) {
+    toastr.error(error);
+    document.querySelector("#botaoGerarArquivos").removeAttribute("disabled");
+  }
+
+  if(dadosComponentes.length != 0){
+    tamanhoItem = 25 / dadosComponentes.length
+  }else{
+    tamanhoItem = 25
+    let tamanhoAtual = Number(
+      document
+        .querySelector("#progressoListaDownload")
+        .style.width.replace("%", "")
+    );
+    document.querySelector("#progressoListaDownload").style.width =
+      (tamanhoAtual + tamanhoItem).toFixed(2) + "%";
+    document.querySelector("#progressoListaDownload").innerText =
+      (tamanhoAtual + tamanhoItem).toFixed(2) + "%";
+  }
+
+  for (let i = 0; i < dadosComponentes.length; i++) {
+    adicionarComponente(
+      dadosComponentes[i].revisao.codigoFonte,
+      dadosComponentes[i].titulo
+    );
+    await new Promise(r => setTimeout(r, 50));
+    let tamanhoAtual = Number(
+      document
+        .querySelector("#progressoListaDownload")
+        .style.width.replace("%", "")
+    );
+    document.querySelector("#progressoListaDownload").style.width =
+      (tamanhoAtual + tamanhoItem).toFixed(2) + "%";
+    document.querySelector("#progressoListaDownload").innerText =
+      (tamanhoAtual + tamanhoItem).toFixed(2) + "%";
+  }
+
+  if(dadosScripts.length != 0){
+    tamanhoItem = 25 / dadosScripts.length
+  }else{
+    tamanhoItem = 25
+    let tamanhoAtual = Number(
+      document
+        .querySelector("#progressoListaDownload")
+        .style.width.replace("%", "")
+    );
+    document.querySelector("#progressoListaDownload").style.width =
+      (tamanhoAtual + tamanhoItem).toFixed(2) + "%";
+    document.querySelector("#progressoListaDownload").innerText =
+      (tamanhoAtual + tamanhoItem).toFixed(2) + "%";
+  }
+
+  for (let i = 0; i < dadosScripts.length; i++) {
+    adicionarScript(
+      dadosScripts[i].revisao.codigoFonte,
+      dadosScripts[i].titulo
+    );
+    await new Promise(r => setTimeout(r, 50));
+    let tamanhoAtual = Number(
+      document
+        .querySelector("#progressoListaDownload")
+        .style.width.replace("%", "")
+    );
+    document.querySelector("#progressoListaDownload").style.width =
+      (tamanhoAtual + tamanhoItem).toFixed(2) + "%";
+    document.querySelector("#progressoListaDownload").innerText =
+      (tamanhoAtual + tamanhoItem).toFixed(2) + "%";
+  }
+
+  if(dadosCriticas.length != 0){
+    tamanhoItem = 25 / dadosCriticas.length
+  }else{
+    tamanhoItem = 25
+    let tamanhoAtual = Number(
+      document
+        .querySelector("#progressoListaDownload")
+        .style.width.replace("%", "")
+    );
+    document.querySelector("#progressoListaDownload").style.width =
+      (tamanhoAtual + tamanhoItem).toFixed(2) + "%";
+    document.querySelector("#progressoListaDownload").innerText =
+      (tamanhoAtual + tamanhoItem).toFixed(2) + "%";
+  }
+
+  for (let i = 0; i < dadosCriticas.length; i++) {
+    adicionarCritica(
+      dadosCriticas[i].revisao.codigoFonte,
+      dadosCriticas[i].titulo
+    );
+    await new Promise(r => setTimeout(r, 50));
+    let tamanhoAtual = Number(
+      document
+        .querySelector("#progressoListaDownload")
+        .style.width.replace("%", "")
+    );
+    document.querySelector("#progressoListaDownload").style.width =
+      (tamanhoAtual + tamanhoItem).toFixed(2) + "%";
+    document.querySelector("#progressoListaDownload").innerText =
+      (tamanhoAtual + tamanhoItem).toFixed(2) + "%";
+  }
+
+  if(dadosFontes.length != 0){
+    tamanhoItem = 25 / dadosFontes.length
+  }else{
+    tamanhoItem = 25
+    let tamanhoAtual = Number(
+      document
+        .querySelector("#progressoListaDownload")
+        .style.width.replace("%", "")
+    );
+    document.querySelector("#progressoListaDownload").style.width =
+      (tamanhoAtual + tamanhoItem).toFixed(2) + "%";
+    document.querySelector("#progressoListaDownload").innerText =
+      (tamanhoAtual + tamanhoItem).toFixed(2) + "%";
+  }
+  
+  for (let i = 0; i < dadosFontes.length; i++) {
+    adicionarFonte(
+      dadosFontes[i].revisao.codigoFonte,
+      dadosFontes[i].titulo
+    );
+    await new Promise(r => setTimeout(r, 50));
+    let tamanhoAtual = Number(
+      document
+        .querySelector("#progressoListaDownload")
+        .style.width.replace("%", "")
+    );
+    document.querySelector("#progressoListaDownload").style.width =
+      (tamanhoAtual + tamanhoItem).toFixed(2) + "%";
+    document.querySelector("#progressoListaDownload").innerText =
+      (tamanhoAtual + tamanhoItem).toFixed(2) + "%";
+  }
+
+  criarZip()
+  document.querySelector("#progressoListaDownload").style.width = "100%";
+  document.querySelector("#progressoListaDownload").innerText = "100%";
+  document.querySelector("#botaoGerarArquivos").removeAttribute("disabled");
+}
 
 async function salvar() {
   if (
@@ -244,7 +546,8 @@ async function salvar() {
     }
   } else if (tipoGeracao === "centralizadorutilitarios") {
     try {
-      let tituloArq = $("#formPrefixoNome").val() + " Centralizador de Utilitários";
+      let tituloArq =
+        $("#formPrefixoNome").val() + " Centralizador de Utilitários";
 
       let rasc = await gerarRascunho(tituloArq);
       idRascunho = rasc.id;
@@ -271,13 +574,14 @@ async function salvar() {
   } else if (tipoGeracao === "gerenciadorcomponentes") {
     try {
       let arquivos = $("#formListaArquivos")
-      .val()
-      .toString()
-      .trim()
-      .replace(/(\r\n|\n|\r)/gm, "")
-      .split(";");
+        .val()
+        .toString()
+        .trim()
+        .replace(/(\r\n|\n|\r)/gm, "")
+        .split(";");
 
-      let tituloArq = $("#formPrefixoNome").val() + " Gerenciador de Identificadores";
+      let tituloArq =
+        $("#formPrefixoNome").val() + " Gerenciador de Identificadores";
 
       let rasc = await gerarRascunho(tituloArq);
       idRascunho = rasc.id;
@@ -286,15 +590,14 @@ async function salvar() {
       let prefixoIdentificador = $("#formPrefixoIdentificador").val();
 
       let ger = await gerarCodigo(
-        buscarCodigoGerenciadorComponentes(arquivos,prefixoIdentificador),
+        buscarCodigoGerenciadorComponentes(arquivos, prefixoIdentificador),
         idRascunho
       );
 
       let pub = await publicarCodigo(idRascunho);
       idPublicacao = pub.id;
 
-      let identificador =
-        prefixoIdentificador + "utilitarios_identificadores";
+      let identificador = prefixoIdentificador + "utilitarios_identificadores";
 
       let save = await salvarIdentificador(identificador, idPublicacao);
       toastr.success("Script gerado com sucesso!");
@@ -490,4 +793,21 @@ async function salvarIdentificador(identificador, idPublicacao) {
       }
     });
   }
+}
+
+function buscaCodigos(offset) {
+  return $.ajax({
+    url: `https://scripts.cloud.betha.com.br/scripts/v1/api/componentes?limit=100&offset=${offset}`,
+    type: "GET",
+    headers: {
+      authorization: bearerToken,
+      "user-access": userAcess
+    },
+    success: function(data) {
+      console.log("Retornados com sucesso");
+    },
+    error: function(xhr, ajaxOptions, thrownError) {
+      console.log(xhr.responseText);
+    }
+  });
 }
