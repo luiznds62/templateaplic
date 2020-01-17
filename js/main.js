@@ -8,6 +8,111 @@ let idPublicacao = undefined;
 let tipoGeracao = "individual";
 let limiteReq = 100;
 
+async function buscarAgrupadores() {
+  return $.ajax({
+    url: `https://cpa.cloud.betha.com.br/campos-adicionais/api/configuracoes?filter=&limit=20&offset=0&sort=`,
+    type: "GET",
+    headers: {
+      authorization: $("#formBearer").val(),
+      "Content-Type": contentType,
+      "user-access": $("#formUserAcess").val()
+    },
+    success: data => {
+    },
+    error: function(xhr, ajaxOptions, thrownError) {
+    }
+  });
+}
+
+async function getCamposAdicionais(idCadastro) {
+  return $.ajax({
+    url: `https://cpa.cloud.betha.com.br/campos-adicionais/api/configuracoes/${idCadastro}`,
+    type: "GET",
+    headers: {
+      authorization: $("#formBearer").val(),
+      "Content-Type": contentType,
+      "user-access": $("#formUserAcess").val()
+    },
+    success: data => {
+    },
+    error: function(xhr, ajaxOptions, thrownError) {
+    }
+  });
+}
+
+async function buscarCamposAdicionais() {
+  let cadastros = [];
+  let camposAdicionais = []
+
+  if ($("#formBearer").val() === "") {
+    toastr.error("Token não informado");
+    document.querySelector("#botaoGerarArquivos").removeAttribute("disabled");
+    return;
+  }
+
+  if ($("#formUserAcess").val() === "") {
+    toastr.error("UserAcess não informado");
+    document.querySelector("#botaoGerarArquivos").removeAttribute("disabled");
+    return;
+  }
+
+  response = await buscarAgrupadores()
+  content = response.content
+
+  for(let i =0; i < content.length; i++){
+    cadastros.push(content[i])
+  }
+
+  for(let i = 0; i < cadastros.length; i++){
+    sNomeCadastro = cadastros[i].descricao
+
+    response = await getCamposAdicionais(cadastros[i].id)
+    
+    if(response.versoes){
+      let = versoes = response.versoes
+      for(let j = 0; j < versoes.length; j++){
+        let agrupadores = versoes[j].agrupadores
+        for(let k = 0; k < agrupadores.length; k++){
+          if(agrupadores[k].titulo === "SIM-AM"){
+            campos = agrupadores[k].campos
+            for(let l = 0; l < campos.length; l++){
+              let campo = campos[l]
+              let configuracoes = []
+              if(campo.formato === 'SELECT'){
+                configuracoes = campo.configuracoes.values
+              }
+
+              console.log(`
+              {
+                "Cadastro": "${sNomeCadastro}",
+                "Titulo": "${campo.titulo}",
+                "Texto de ajuda": "${campo.textoAjuda}",
+                "Tipo do campo": "${campo.formato}",
+                "Variável": "${campo.variavel}",
+                "Placeholder": "${campo.placeholder}",
+                "Obrigatório": "${campo.obrigatorio}",
+                "Visivel": "${campo.visivel}",
+              }
+              `)
+
+              console.log('{ "configuracoes": [')
+              for(let n = 0; n < configuracoes.length; n++){
+                console.log(`
+                {
+                  "Valor": "${configuracoes[n].valor}",
+                  "Descrição": "${configuracoes[n].descricao}"
+                }
+                `)
+              }
+              console.log('] }')
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
 async function buscarComponentes(offset = 0) {
   return $.ajax({
     url: `https://scripts.cloud.betha.com.br/scripts/v1/api/componentes?limit=100&offset=${offset}`,
@@ -128,8 +233,8 @@ async function iniciarGeracao() {
       }
     }
 
-    offset = 0
-    existeProximo = true
+    offset = 0;
+    existeProximo = true;
     while (existeProximo) {
       let dadosReq = await buscarScripts(offset);
       existeProximo = dadosReq.hasNext;
@@ -142,8 +247,8 @@ async function iniciarGeracao() {
       }
     }
 
-    offset = 0
-    existeProximo = true
+    offset = 0;
+    existeProximo = true;
     while (existeProximo) {
       let dadosReq = await buscarCriticas(offset);
       existeProximo = dadosReq.hasNext;
@@ -156,8 +261,8 @@ async function iniciarGeracao() {
       }
     }
 
-    offset = 0
-    existeProximo = true
+    offset = 0;
+    existeProximo = true;
     while (existeProximo) {
       let dadosReq = await buscarFontes(offset);
       existeProximo = dadosReq.hasNext;
@@ -169,16 +274,15 @@ async function iniciarGeracao() {
         dadosFontes.push(dadosReq.content[i]);
       }
     }
-
   } catch (error) {
     toastr.error(error);
     document.querySelector("#botaoGerarArquivos").removeAttribute("disabled");
   }
 
-  if(dadosComponentes.length != 0){
-    tamanhoItem = 25 / dadosComponentes.length
-  }else{
-    tamanhoItem = 25
+  if (dadosComponentes.length != 0) {
+    tamanhoItem = 25 / dadosComponentes.length;
+  } else {
+    tamanhoItem = 25;
     let tamanhoAtual = Number(
       document
         .querySelector("#progressoListaDownload")
@@ -207,10 +311,10 @@ async function iniciarGeracao() {
       (tamanhoAtual + tamanhoItem).toFixed(2) + "%";
   }
 
-  if(dadosScripts.length != 0){
-    tamanhoItem = 25 / dadosScripts.length
-  }else{
-    tamanhoItem = 25
+  if (dadosScripts.length != 0) {
+    tamanhoItem = 25 / dadosScripts.length;
+  } else {
+    tamanhoItem = 25;
     let tamanhoAtual = Number(
       document
         .querySelector("#progressoListaDownload")
@@ -239,10 +343,10 @@ async function iniciarGeracao() {
       (tamanhoAtual + tamanhoItem).toFixed(2) + "%";
   }
 
-  if(dadosCriticas.length != 0){
-    tamanhoItem = 25 / dadosCriticas.length
-  }else{
-    tamanhoItem = 25
+  if (dadosCriticas.length != 0) {
+    tamanhoItem = 25 / dadosCriticas.length;
+  } else {
+    tamanhoItem = 25;
     let tamanhoAtual = Number(
       document
         .querySelector("#progressoListaDownload")
@@ -271,10 +375,10 @@ async function iniciarGeracao() {
       (tamanhoAtual + tamanhoItem).toFixed(2) + "%";
   }
 
-  if(dadosFontes.length != 0){
-    tamanhoItem = 25 / dadosFontes.length
-  }else{
-    tamanhoItem = 25
+  if (dadosFontes.length != 0) {
+    tamanhoItem = 25 / dadosFontes.length;
+  } else {
+    tamanhoItem = 25;
     let tamanhoAtual = Number(
       document
         .querySelector("#progressoListaDownload")
@@ -285,12 +389,9 @@ async function iniciarGeracao() {
     document.querySelector("#progressoListaDownload").innerText =
       (tamanhoAtual + tamanhoItem).toFixed(2) + "%";
   }
-  
+
   for (let i = 0; i < dadosFontes.length; i++) {
-    adicionarFonte(
-      dadosFontes[i].revisao.codigoFonte,
-      dadosFontes[i].titulo
-    );
+    adicionarFonte(dadosFontes[i].revisao.codigoFonte, dadosFontes[i].titulo);
     await new Promise(r => setTimeout(r, 50));
     let tamanhoAtual = Number(
       document
@@ -303,7 +404,7 @@ async function iniciarGeracao() {
       (tamanhoAtual + tamanhoItem).toFixed(2) + "%";
   }
 
-  criarZip()
+  criarZip();
   document.querySelector("#progressoListaDownload").style.width = "100%";
   document.querySelector("#progressoListaDownload").innerText = "100%";
   document.querySelector("#botaoGerarArquivos").removeAttribute("disabled");

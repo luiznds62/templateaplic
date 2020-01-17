@@ -78,6 +78,12 @@
                         <li onclick="mostrarExportacoes()" class="mm-delay">
                             <a>Exportações</a>
                         </li>
+                        <li onclick="mostrarImportacoes()" class="mm-delay">
+                            <a>Importações</a>
+                        </li>
+                        <li onclick="mostrarCamposAdicionais()" class="mm-delay">
+                            <a>Campos adicionais</a>
+                        </li>
                         <li onclick="mostrarConfiguracoes()" class="mm-delay">
                             <a>Configurações</a>
                         </li>
@@ -140,16 +146,53 @@
                         </div>
                     </div>
                     <div id="progressoListaDownloadDiv" class="progress">
-                            <div id="progressoListaDownload"
-                                class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
-                                style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
-                        </div>
+                        <div id="progressoListaDownload" class="progress-bar progress-bar-striped progress-bar-animated"
+                            role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0"
+                            aria-valuemax="100">0%</div>
+                    </div>
                     <div class="section-content">
                         <a id="botaoGerarArquivos" onclick="iniciarGeracao()" type="submit"
                             class="btn btn-primary">INICIAR GERAÇÃO</a>
                     </div>
                 </div>
             </div>
+            <div id="importacoes" class="container container-page">
+                <div class="page-header">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <h3 class="page-title">Importações</h3>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="input-group mb-3">
+                            <input id="inputFile" class="form-control" name="files[]" type="file" multiple>
+                        </div>
+                    </div>
+
+                    <div id="progressoListaImportDiv" class="progress">
+                        <div id="progressoListaImport" class="progress-bar progress-bar-striped progress-bar-animated"
+                            role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0"
+                            aria-valuemax="100">0%</div>
+                    </div>
+                    <div class="section-content">
+                        <a id="botaoImportarArquivos" onclick="handleFileSelect()" type="submit"
+                            class="btn btn-primary">INICIAR</a>
+                    </div>
+                </div>
+            </div>
+            <div id="camposadicionais" class="container container-page">
+                    <div class="page-header">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <h3 class="page-title">Campos adicionais</h3>
+                            </div>
+                        </div>
+                        <div class="section-content">
+                            <a id="botaoCamposAdicionais" onclick="buscarCamposAdicionais()" type="submit"
+                                class="btn btn-primary">INICIAR</a>
+                        </div>
+                    </div>
+                </div>
             <div id="configuracao" class="container container-page">
                 <div class="page-header">
                     <div class="row">

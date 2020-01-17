@@ -1,3 +1,7 @@
+window.onload = function(){
+  document.getElementById('inputFile').addEventListener('change', handleFileSelect, false);
+}
+
 function mostrarIndividual() {
   document.querySelector("#individual").style.display = "block";
   document.querySelector("#listaArquivos").style.display = "none";
@@ -37,25 +41,48 @@ function mostrarGerenciadorComponentes() {
   document.querySelector("#individual").style.display = "none";
   document.querySelector("#listaArquivos").style.display = "block";
   document.querySelector("#progressoLista").style.display = "none";
+  document.querySelector("#botaoLog").style.display = "none";
   document.querySelector("#botaoLog").style.display = "inline";
 }
 
 function mostrarPrincipal() {
   document.querySelector("#principal").style.display = "block";
   document.querySelector("#configuracao").style.display = "none";
+  document.querySelector("#importacoes").style.display = "none";
+  document.querySelector("#camposadicionais").style.display = "none";
   document.querySelector("#exportacoes").style.display = "none";
 }
 
 function mostrarExportacoes() {
   document.querySelector("#principal").style.display = "none";
   document.querySelector("#configuracao").style.display = "none";
+  document.querySelector("#importacoes").style.display = "none";
+  document.querySelector("#camposadicionais").style.display = "none";
   document.querySelector("#exportacoes").style.display = "block";
+}
+
+function mostrarImportacoes() {
+  document.querySelector("#principal").style.display = "none";
+  document.querySelector("#configuracao").style.display = "none";
+  document.querySelector("#exportacoes").style.display = "none";
+  document.querySelector("#camposadicionais").style.display = "none";
+  document.querySelector("#importacoes").style.display = "block";
 }
 
 function mostrarConfiguracoes() {
   document.querySelector("#principal").style.display = "none";
   document.querySelector("#exportacoes").style.display = "none";
+  document.querySelector("#importacoes").style.display = "none";
+  document.querySelector("#camposadicionais").style.display = "none";
   document.querySelector("#configuracao").style.display = "block";
+}
+
+function mostrarCamposAdicionais(){
+  document.querySelector("#principal").style.display = "none";
+  document.querySelector("#exportacoes").style.display = "none";
+  document.querySelector("#importacoes").style.display = "none";
+  document.querySelector("#camposadicionais").style.display = "block";
+  document.querySelector("#configuracao").style.display = "none";
 }
 
 function mostrarLogs() {
