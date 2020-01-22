@@ -17,10 +17,8 @@ async function buscarAgrupadores() {
       "Content-Type": contentType,
       "user-access": $("#formUserAcess").val()
     },
-    success: data => {
-    },
-    error: function(xhr, ajaxOptions, thrownError) {
-    }
+    success: data => {},
+    error: function(xhr, ajaxOptions, thrownError) {}
   });
 }
 
@@ -33,16 +31,14 @@ async function getCamposAdicionais(idCadastro) {
       "Content-Type": contentType,
       "user-access": $("#formUserAcess").val()
     },
-    success: data => {
-    },
-    error: function(xhr, ajaxOptions, thrownError) {
-    }
+    success: data => {},
+    error: function(xhr, ajaxOptions, thrownError) {}
   });
 }
 
 async function buscarCamposAdicionais() {
   let cadastros = [];
-  let camposAdicionais = []
+  let camposAdicionais = [];
 
   if ($("#formBearer").val() === "") {
     toastr.error("Token não informado");
@@ -56,33 +52,32 @@ async function buscarCamposAdicionais() {
     return;
   }
 
-  response = await buscarAgrupadores()
-  content = response.content
+  response = await buscarAgrupadores();
+  content = response.content;
 
-  for(let i =0; i < content.length; i++){
-    cadastros.push(content[i])
+  for (let i = 0; i < content.length; i++) {
+    cadastros.push(content[i]);
   }
 
-  for(let i = 0; i < cadastros.length; i++){
-    sNomeCadastro = cadastros[i].descricao
+  for (let i = 0; i < cadastros.length; i++) {
+    sNomeCadastro = cadastros[i].descricao;
 
-    response = await getCamposAdicionais(cadastros[i].id)
-    
-    if(response.versoes){
-      let = versoes = response.versoes
-      for(let j = 0; j < versoes.length; j++){
-        let agrupadores = versoes[j].agrupadores
-        for(let k = 0; k < agrupadores.length; k++){
-          if(agrupadores[k].titulo === "SIM-AM"){
-            campos = agrupadores[k].campos
-            for(let l = 0; l < campos.length; l++){
-              let campo = campos[l]
-              let configuracoes = []
-              if(campo.formato === 'SELECT'){
-                configuracoes = campo.configuracoes.values
-              }
+    response = await getCamposAdicionais(cadastros[i].id);
 
-              console.log(`
+    if (response.versoes) {
+      let = versoes = response.versoes;
+      for (let j = 0; j < versoes.length; j++) {
+        let agrupadores = versoes[j].agrupadores;
+        for (let k = 0; k < agrupadores.length; k++) {
+          campos = agrupadores[k].campos;
+          for (let l = 0; l < campos.length; l++) {
+            let campo = campos[l];
+            let configuracoes = [];
+            if (campo.formato === "SELECT") {
+              configuracoes = campo.configuracoes.values;
+            }
+
+            console.log(`
               {
                 "Cadastro": "${sNomeCadastro}",
                 "Titulo": "${campo.titulo}",
@@ -93,19 +88,18 @@ async function buscarCamposAdicionais() {
                 "Obrigatório": "${campo.obrigatorio}",
                 "Visivel": "${campo.visivel}",
               }
-              `)
+              `);
 
-              console.log('{ "configuracoes": [')
-              for(let n = 0; n < configuracoes.length; n++){
-                console.log(`
+            console.log('{ "configuracoes": [');
+            for (let n = 0; n < configuracoes.length; n++) {
+              console.log(`
                 {
                   "Valor": "${configuracoes[n].valor}",
                   "Descrição": "${configuracoes[n].descricao}"
                 }
-                `)
-              }
-              console.log('] }')
+                `);
             }
+            console.log("] }");
           }
         }
       }
